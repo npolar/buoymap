@@ -1,4 +1,4 @@
-var globe, buoyList = [], buoyListElem = document.getElementById('buoyList'), ui;
+var globe, buoyList = [], buoyListElem = document.getElementById('buoyList'), ui, infoItem, infoCBIndex = null;
 
 globe = new glacier.GlobeScene('scene', {
 	background:			glacier.color.BLACK,
@@ -9,6 +9,19 @@ globe = new glacier.GlobeScene('scene', {
 
 globe.bindMouse({ zoomMax: 3.0, zoomSteps: 20 });
 globe.run();
+
+
+// Set up info item
+(function () {
+	infoItem = document.getElementById('itemInfo');
+	infoItem.move = function(latLng) {
+		var worldPos = globe.latLngToPoint(latLng),
+				screenPos = globe.context.worldToScreen(worldPos.multiply(globe.base.matrix));
+
+				infoItem.style.left = (screenPos.x - (infoItem.offsetWidth / 2)) + 'px';
+				infoItem.style.top = (screenPos.y - (infoItem.offsetHeight + 10)) + 'px';
+	};
+})();
 
 ui = {
 	checkbox: function (item) {
@@ -29,7 +42,7 @@ ui = {
 	titleLink: function (item) {
 		a = document.createElement('a');
 		a.addEventListener('click', function (e) {
-			globe.focus(item.position);
+			ui.focusItem(item);
 		});
 		a.style.color = item.color;
 		a.style.cursor = 'pointer';
@@ -41,13 +54,56 @@ ui = {
 		button.addEventListener('click', function (e) {
 			buoyList.forEach(function (buoyListElem) {
 				buoyListElem.checkbox.checked = !buoyListElem.checkbox.checked;
-				// Create a new 'change' event
-				var event = new Event('change');
-				// Dispatch it.
-				buoyListElem.checkbox.dispatchEvent(event);
+				buoyListElem.checkbox.dispatchEvent(new Event('change'));
 			});
 		});
-		button.className = 'myButton';
+		button.classList.remove('hidden');
+	},
+	focusItem: function (dataItem) {
+		//infoItem.innerHTML = dataItem.time;
+		infoItem.querySelector('h4').innerHTML = dataItem.name;
+		var dl = infoItem.querySelector('dl'), child;
+
+		while((child = dl.lastChild)) {
+			dl.removeChild(child);
+		}
+
+		for (var prop in dataItem.properties) {
+			if (['title', '_id', 'id', '_rev', 'schema', 'links', 'sequence'].indexOf(prop) == -1) {
+				var dt = document.createElement('dt');
+				var dd = document.createElement('dd');
+				dt.innerHTML = prop;
+				dd.innerHTML = dataItem.properties[prop];
+				dl.appendChild(dt);
+				dl.appendChild(dd);
+			}
+		}
+
+		dataItem.properties.links.forEach(function (link) {
+			var dt = document.createElement('dt');
+			var dd = document.createElement('dd');
+			var a = document.createElement('a');
+			dt.innerHTML = link.title;
+			a.href = link.href;
+			a.target = '_blank';
+			a.innerHTML = link.href;
+			dd.appendChild(a);
+			dl.appendChild(dt);
+			dl.appendChild(dd);
+		});
+
+		infoItem.style.color = dataItem.color;
+
+		globe.focus(dataItem.position, function(latLng) {
+			if(infoCBIndex !== null) {
+				globe.runCallbacks.splice(infoCBIndex, 1);
+			}
+
+			infoCBIndex = globe.runCallbacks.push(function (dtime) {
+				infoItem.move(latLng);
+			}) - 1;
+			infoItem.classList.remove('hidden');
+		});
 	}
 };
 
@@ -69,6 +125,7 @@ glacier.load('http://api.npolar.no/oceanography/buoy/?q=&facets=IMEI&size-facet=
 				name: last.properties.title,
 				imei: last.properties.IMEI,
 				time: last.properties.measured,
+				properties: last.properties,
 				data: data,
 				color: color.toHtmlString(),
 				position: new glacier.Vector2(last.properties.longitude, last.properties.latitude)
@@ -84,7 +141,7 @@ glacier.load('http://api.npolar.no/oceanography/buoy/?q=&facets=IMEI&size-facet=
 
 			if (++nrLoaded === imeis.length) {
 				ui.addButton();
-				globe.focus(dataItem.position);
+				ui.focusItem(dataItem);
 			}
 		});
 	});

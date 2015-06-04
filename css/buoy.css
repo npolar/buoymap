@@ -76,3 +76,42 @@ body
 	position:relative;
 	top:1px;
 }
+
+.info
+{
+	background: rgba(0, 0, 0, 0.8);
+	border-radius: 5px;
+	color: #fff;
+	font-family: monospace;
+	font-size: 12px;
+	padding: 10px;
+	position: fixed;
+	max-width: 400px;
+}
+
+.info:before
+{
+	border-left: 10px solid transparent;
+	border-right: 10px solid transparent;
+	border-top: 10px solid rgba(0, 0, 0, 0.8);
+	bottom: -10px;
+	content: '';
+	height: 0;
+	left: calc(50% - 10px);
+	position: absolute;
+	width: 0;
+}
+
+dl {
+	width: 100%;
+	overflow: hidden;
+}
+
+dt {
+  float: left;
+  width: 50%;
+}
+dd {
+  float: left;
+  width: 50%;
+}
