@@ -1,0 +1,41 @@
+*
+{
+	margin: 0;
+	padding: 0;
+}
+
+body
+{
+	font-family: monospace;
+}
+
+#scene
+{
+	height: 100%;
+	position: fixed;
+	width: 100%;
+	z-index: -1;
+}
+
+.overlay
+{
+	background: rgba(64, 64, 64, 0.6);
+	border-radius: 5px;
+	color: #fff;
+	padding: 10px;
+	position: absolute;
+}
+
+#buoyList
+{
+	font-size: 15px;
+	list-style: none;
+	position: absolute;
+	right: 10px;
+	top: 10px;
+}
+
+#buoyList li:hover
+{
+	font-weight: bold;
+}
