@@ -89,6 +89,14 @@ body
 	max-width: 400px;
 }
 
+.info .close {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	font-size: 1.2em;
+	cursor: pointer;
+}
+
 .info:before
 {
 	border-left: 10px solid transparent;

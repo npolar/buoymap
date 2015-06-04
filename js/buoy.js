@@ -21,6 +21,9 @@ globe.run();
 				infoItem.style.left = (screenPos.x - (infoItem.offsetWidth / 2)) + 'px';
 				infoItem.style.top = (screenPos.y - (infoItem.offsetHeight + 10)) + 'px';
 	};
+	infoItem.querySelector('a.close').addEventListener('click', function () {
+		infoItem.classList.add('hidden');
+	});
 })();
 
 ui = {
