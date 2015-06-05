@@ -18,6 +18,7 @@ globe.run();
 (function () {
 	itemInfo = {
 		callbackIndex: null,
+		currentItem: null,
 		element: document.getElementById('itemInfo'),
 		hide: function() {
 			this.element.classList.add('hidden');
@@ -89,7 +90,7 @@ ui = {
 		checkbox.toggle = function(event) {
 			if(event && (event.target === this)) {
 				if(event.target.checked) {
-					item.data.show();
+					ui.focusItem(item);
 				} else {
 					item.data.hide();
 				}
@@ -98,6 +99,12 @@ ui = {
 					item.data.show();
 				} else {
 					item.data.hide();
+				}
+			}
+			
+			if(itemInfo.currentItem === item) {
+				if(!this.checked) {
+					itemInfo.hide();
 				}
 			}
 		};
@@ -141,8 +148,10 @@ ui = {
 		button.classList.remove('hidden');
 	},
 	focusItem: function (dataItem) {
+		itemInfo.hide();
 		dataItem.checkbox.check();
 		
+		itemInfo.currentItem = dataItem;
 		itemInfo.setTitle(dataItem.name, dataItem.color);
 		itemInfo.setProperties(dataItem.properties);
 		
