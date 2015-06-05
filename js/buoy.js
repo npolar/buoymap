@@ -145,7 +145,7 @@ var dataDone = function () {
 };
 
 (function () {
-  glacier.load('http://api.npolar.no/oceanography/buoy/?q=&facets=IMEI&size-facet=99&format=json&limit=0', function(data) {
+  glacier.load('https://api.npolar.no/oceanography/buoy/?q=&facets=IMEI&size-facet=99&format=json&limit=0', function(data) {
   	var imeis = [], nrLoaded = 0;
   	data = JSON.parse(data);
 
@@ -154,7 +154,7 @@ var dataDone = function () {
   	});
 
   	imeis.forEach(function(imei) {
-      glacier.load('http://api.npolar.no/oceanography/buoy/?q=&format=geojson&limit=all&sort=measured&filter-IMEI=' + imei, function (data) {
+      glacier.load('https://api.npolar.no/oceanography/buoy/?q=&format=geojson&limit=all&sort=measured&filter-IMEI=' + imei, function (data) {
 				renderBuoy(JSON.parse(data));
 
         if (++nrLoaded === imei.length) {
