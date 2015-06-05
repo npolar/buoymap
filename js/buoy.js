@@ -86,18 +86,23 @@ ui = {
 		checkbox.classList.add('toggle');
 		checkbox.checked = true;
 		
-		checkbox.addEventListener('change', function(event) {
-			if(event.target.checked) {
-				item.data.show();
+		checkbox.toggle = function(event) {
+			if(event && (event.target === this)) {
+				if(event.target.checked) {
+					item.data.show();
+				} else {
+					item.data.hide();
+				}
 			} else {
-				item.data.hide();
+				if((this.checked = !this.checked)) {
+					item.data.show();
+				} else {
+					item.data.hide();
+				}
 			}
-		});
-		
-		checkbox.toggle = function() {
-			this.checked = !this.checked;
-			this.dispatchEvent(new Event('change'));
 		};
+		
+		checkbox.addEventListener('change', checkbox.toggle);
 		
 		checkbox.check = function() {
 			this.checked = true;
