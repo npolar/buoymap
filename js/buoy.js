@@ -15,11 +15,10 @@ globe.run();
 (function () {
 	infoItem = document.getElementById('itemInfo');
 	infoItem.move = function(latLng) {
-		var worldPos = globe.latLngToPoint(latLng),
-				screenPos = globe.context.worldToScreen(worldPos.multiply(globe.base.matrix));
+		var screenPos = globe.latLngToScreen(latLng);
 
-				infoItem.style.left = (screenPos.x - (infoItem.offsetWidth / 2)) + 'px';
-				infoItem.style.top = (screenPos.y - (infoItem.offsetHeight + 10)) + 'px';
+		infoItem.style.left = (screenPos.x - (infoItem.offsetWidth / 2)) + 'px';
+		infoItem.style.top = (screenPos.y - (infoItem.offsetHeight + 10)) + 'px';
 	};
 	infoItem.querySelector('a.close').addEventListener('click', function () {
 		infoItem.classList.add('hidden');
@@ -40,6 +39,14 @@ ui = {
 				item.data.hide();
 			}
 		});
+		checkbox.toggle = function () {
+			this.checked = !this.checked;
+			this.dispatchEvent(new Event('change'));
+		};
+		checkbox.check = function () {
+			this.checked = true;
+			item.data.show();
+		};
 		return checkbox;
 	},
 	titleLink: function (item) {
@@ -47,7 +54,7 @@ ui = {
 		a.addEventListener('click', function (e) {
 			ui.focusItem(item);
 		});
-		a.style.color = item.color;
+		a.style.color = item.color.toString();
 		a.style.cursor = 'pointer';
 		a.innerHTML = item.name;
 		return a;
@@ -56,14 +63,13 @@ ui = {
 		var button = document.getElementById('toggle');
 		button.addEventListener('click', function (e) {
 			buoyList.forEach(function (buoyListElem) {
-				buoyListElem.checkbox.checked = !buoyListElem.checkbox.checked;
-				buoyListElem.checkbox.dispatchEvent(new Event('change'));
+				buoyListElem.checkbox.toggle();
 			});
 		});
 		button.classList.remove('hidden');
 	},
 	focusItem: function (dataItem) {
-		//infoItem.innerHTML = dataItem.time;
+		dataItem.checkbox.check();
 		infoItem.querySelector('h4').innerHTML = dataItem.name;
 		var dl = infoItem.querySelector('dl'), child;
 
@@ -95,8 +101,6 @@ ui = {
 			dl.appendChild(dd);
 		});
 
-		infoItem.style.color = dataItem.color;
-
 		globe.focus(dataItem.position, function(latLng) {
 			if(infoCBIndex !== null) {
 				globe.runCallbacks.splice(infoCBIndex, 1);
@@ -110,43 +114,53 @@ ui = {
 	}
 };
 
-glacier.load('http://api.npolar.no/oceanography/buoy/?q=&facets=IMEI&size-facet=99&format=json&limit=0', function(data) {
-	var imeis = [], nrLoaded = 0;
-	data = JSON.parse(data);
-
-	data.feed.facets[0].IMEI.forEach(function(imei) {
-		imeis.push(imei.term);
-	});
-
-	imeis.forEach(function(imei) {
-		var color = new glacier.Color(imei % 0xFFFFFF);
-
-		globe.addData('http://api.npolar.no/oceanography/buoy/?q=&format=geojson&limit=all&sort=measured&filter-IMEI=' + imei, color, function(url, data) {
-			var features = data.geoJSON.features, first = features[0], last = features[features.length - 1], listItem, dataItem, checkbox;
-
-			buoyList.push({
-				name: last.properties.title,
-				imei: last.properties.IMEI,
-				time: last.properties.measured,
-				properties: last.properties,
-				data: data,
-				color: color.toHtmlString(),
-				position: new glacier.Vector2(last.properties.longitude, last.properties.latitude)
-			});
-
-			dataItem = buoyList[buoyList.length - 1];
-			listItem = document.createElement('LI');
-			checkbox = ui.checkbox(dataItem);
-			dataItem.checkbox = checkbox;
-			listItem.appendChild(checkbox);
-			listItem.appendChild(ui.titleLink(dataItem));
-			buoyListElem.appendChild(listItem);
-
-			if (++nrLoaded === imeis.length) {
-				ui.addButton();
-				ui.focusItem(dataItem);
-			}
+var renderBuoy = function (geojson) {
+	var color = new glacier.Color(geojson.features[0].properties.IMEI % 0xFFFFFF);
+	//var color = glacier.color.RED;
+	globe.addData(geojson, color, function(uid, data) {
+		var features = data.geoJSON.features, first = features[0], last = features[features.length - 1], listItem, dataItem, checkbox;
+		buoyList.push({
+			name: last.properties.title,
+			imei: last.properties.IMEI,
+			time: last.properties.measured,
+			properties: last.properties,
+			data: data,
+			color: color,
+			position: new glacier.Vector2(last.properties.longitude, last.properties.latitude)
 		});
-	});
 
-});
+		dataItem = buoyList[buoyList.length - 1];
+		listItem = document.createElement('LI');
+		checkbox = ui.checkbox(dataItem);
+		dataItem.checkbox = checkbox;
+		listItem.appendChild(checkbox);
+		listItem.appendChild(ui.titleLink(dataItem));
+		buoyListElem.appendChild(listItem);
+	});
+};
+
+var dataDone = function () {
+	ui.addButton();
+	ui.focusItem(buoyList[buoyList.length - 1]);
+};
+
+(function () {
+  glacier.load('http://api.npolar.no/oceanography/buoy/?q=&facets=IMEI&size-facet=99&format=json&limit=0', function(data) {
+  	var imeis = [], nrLoaded = 0;
+  	data = JSON.parse(data);
+
+  	data.feed.facets[0].IMEI.forEach(function(imei) {
+  		imeis.push(imei.term);
+  	});
+
+  	imeis.forEach(function(imei) {
+      glacier.load('http://api.npolar.no/oceanography/buoy/?q=&format=geojson&limit=all&sort=measured&filter-IMEI=' + imei, function (data) {
+				renderBuoy(JSON.parse(data));
+
+        if (++nrLoaded === imei.length) {
+          dataDone();
+        }
+      });
+    });
+  });
+})();

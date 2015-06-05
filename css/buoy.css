@@ -97,6 +97,10 @@ body
 	cursor: pointer;
 }
 
+.info .close:hover {
+	font-weight: bold;
+}
+
 .info:before
 {
 	border-left: 10px solid transparent;
@@ -122,4 +126,8 @@ dt {
 dd {
   float: left;
   width: 50%;
+}
+
+.info a, .info a:visited {
+	color: white
 }
