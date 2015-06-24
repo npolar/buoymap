@@ -17,7 +17,7 @@ globe.run();
 // itemInfo setup
 (function () {
 	itemInfo = {
-		callbackIndex: null,
+		callbackUID: null,
 		currentItem: null,
 		element: document.getElementById('itemInfo'),
 		hide: function() {
@@ -156,13 +156,13 @@ ui = {
 		itemInfo.setProperties(dataItem.properties);
 		
 		globe.focus(dataItem.position, function(latLng) {
-			if(itemInfo.callbackIndex !== null) {
-				globe.runCallbacks.splice(itemInfo.callbackIndex, 1);
+			if(itemInfo.callbackUID !== null) {
+				globe.removeRunCallback(itemInfo.callbackUID);
 			}
 			
-			itemInfo.callbackIndex = globe.runCallbacks.push(function(dtime) {
+			itemInfo.callbackUID = globe.addRunCallback(function(dtime) {
 				itemInfo.move(latLng);
-			}) - 1;
+			});
 			
 			itemInfo.show();
 		});
@@ -206,7 +206,7 @@ function onAddSuccess() {
 }
 
 (function () {
-	glacier.load('https://api.npolar.no/oceanography/buoy/?q=&facets=IMEI&size-facet=99&format=json&limit=0', function(data) {
+	glacier.load('//api.npolar.no/oceanography/buoy/?q=&facets=IMEI&size-facet=99&format=json&limit=0', function(data) {
 		var imeis = [], buoysAdded = 0;
 		data = JSON.parse(data);
 		
@@ -215,7 +215,7 @@ function onAddSuccess() {
 		});
 		
 		imeis.forEach(function(imei) {
-			glacier.load('https://api.npolar.no/oceanography/buoy/?q=&format=geojson&limit=all&sort=measured&filter-IMEI=' + imei, function(data) {
+			glacier.load('//api.npolar.no/oceanography/buoy/?q=&format=geojson&limit=all&sort=measured&filter-IMEI=' + imei, function(data) {
 				addBuoy(JSON.parse(data));
 				
 				if(++buoysAdded >= imeis.length) {
