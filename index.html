@@ -5,31 +5,31 @@
 		<meta charset="UTF-8" />
 		<link rel="stylesheet" href="css/buoy.css" />
 	</head>
-	
+
 	<body>
 		<!-- Scene container -->
 		<div id="scene"></div>
-		
+
 		<!-- Application usage help overlay -->
 		<div class="helpOverlay" style="top: 10px; left: 10px;">
 			Click and drag for rotation.<br/>
 			Scroll-wheel for zoom.<br />
 		</div>
-		
+
 		<!-- Control Panel -->
 		<div id="controls">
 			<ul id="buoyList"></ul>
 			<button id="toggle" class="hidden myButton">Toggle</button>
 		</div>
-		
+
 		<!-- Buoy Info PopUp -->
 		<div id="itemInfo" class="info hidden">
 			<a class="close">&times;</a>
 			<h4>title</h4>
 			<hr />
-			<dl></dl>
+			<div id="data"></div>
 		</div>
-		
+
 		<script src="js/glacier.min.js"></script>
 		<script src="js/buoy.js"></script>
 	</body>
