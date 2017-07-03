@@ -61,7 +61,7 @@ globe.run();
 
 			dataDiv.innerHTML = '';
 			for (var prop in properties) {
-				if (['title', '_id', 'id', '_rev', 'schema', 'links', 'sequence'].indexOf(prop) === -1) {
+				if (['buoy', '_id', 'id', '_rev', 'collection', 'schema', 'links', 'sequence', 'created_by', 'created', 'updated', 'updated_by'].indexOf(prop) === -1) {
 					dataProps[prop] = properties[prop];
 				}
 			}
@@ -176,7 +176,7 @@ ui = {
 };
 
 function addBuoy(geojson) {
-	var color = new glacier.Color(geojson.features[0].properties.IMEI % 0xFFFFFF);
+	var color = new glacier.Color(Math.random()*0xFFFFFF); // geojson.features[0].buoy % 0xFFFFFF);
 
 	globe.addData(geojson, color, function(uid, data) {
 		var features = data.geoJSON.features,
@@ -187,8 +187,8 @@ function addBuoy(geojson) {
 			checkbox;
 
 		buoyList.push({
-			name: last.properties.title,
-			imei: last.properties.IMEI,
+			name: last.properties.buoy,
+			//imei: last.properties.IMEI,
 			time: last.properties.measured,
 			properties: last.properties,
 			data: data,
@@ -212,18 +212,19 @@ function onAddSuccess() {
 }
 
 (function () {
-	glacier.load('//api.npolar.no/oceanography/buoy/?q=&facets=title&size-facet=99&format=json&limit=0', function(data) {
+	glacier.load('//api.npolar.no/oceanography/buoy/?q=&facets=buoy&size-facet=999&format=json&limit=0&filter-quality=1', function(data) {
 		var titles = [], buoysAdded = 0;
 		data = JSON.parse(data);
 
-		data.feed.facets[0].title.forEach(function(title) {
-			titles.push(title.term);
+		data.feed.facets[0].buoy.forEach(function(buoy) {
+                  console.log('buoy', buoy, buoy.term);
+	          titles.push(buoy.term);
 		});
 
 		titles.sort();
 
 		titles.forEach(function(title) {
-			glacier.load('//api.npolar.no/oceanography/buoy/?q=&format=geojson&limit=all&sort=measured&filter-title=' + title, function(data) {
+			glacier.load('//api.npolar.no/oceanography/buoy/?q=&format=geojson&filter-quality=1&limit=all&sort=measured&filter-buoy=' + title, function(data) {
 				addBuoy(JSON.parse(data));
 
 				if(++buoysAdded >= titles.length) {
